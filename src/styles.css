@@ -1383,8 +1383,8 @@ a.header-book svg {
 }
 
 /* Ensure Reveal wrapper fills 100% height and flex column */
-.why-grid > div,
-.why-grid > .reveal {
+.why-grid>div,
+.why-grid>.reveal {
   display: flex !important;
   flex-direction: column !important;
   height: 100% !important;
@@ -1395,8 +1395,8 @@ a.header-book svg {
   box-sizing: border-box !important;
 }
 
-.why-grid > div:first-child,
-.why-grid > div:last-child {
+.why-grid>div:first-child,
+.why-grid>div:last-child {
   padding: 0 !important;
   border: none !important;
 }
@@ -5138,8 +5138,8 @@ a.footer-enquire-btn:hover {
     gap: 20px !important;
   }
 
-  .why-grid > div,
-  .why-grid > .reveal {
+  .why-grid>div,
+  .why-grid>.reveal {
     padding: 0 !important;
     border: none !important;
   }
@@ -5694,8 +5694,8 @@ a.footer-enquire-btn:hover {
     gap: 20px !important;
   }
 
-  .why-grid > div,
-  .why-grid > .reveal {
+  .why-grid>div,
+  .why-grid>.reveal {
     padding: 0 !important;
     border: none !important;
   }
@@ -5968,8 +5968,15 @@ a.footer-enquire-btn:hover {
 }
 
 @keyframes welcomeGlowSmooth {
-  0% { opacity: 0.55; transform: scale(0.95); }
-  100% { opacity: 0.95; transform: scale(1.05); }
+  0% {
+    opacity: 0.55;
+    transform: scale(0.95);
+  }
+
+  100% {
+    opacity: 0.95;
+    transform: scale(1.05);
+  }
 }
 
 .welcome-card {
@@ -6021,8 +6028,15 @@ a.footer-enquire-btn:hover {
 }
 
 @keyframes welcomeLogoIn {
-  0% { transform: scale(0.7) rotate(-6deg); opacity: 0; }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  0% {
+    transform: scale(0.7) rotate(-6deg);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
 }
 
 .welcome-eyebrow {
@@ -6135,6 +6149,7 @@ html.ef-welcome-done .welcome-overlay {
   0% {
     transform: translate3d(-100%, 0, 0);
   }
+
   100% {
     transform: translate3d(100%, 0, 0);
   }
@@ -6148,8 +6163,15 @@ html.ef-welcome-done .welcome-overlay {
 }
 
 @keyframes welcomeLinePulse {
-  0% { transform: scaleX(0.75); opacity: 0.5; }
-  100% { transform: scaleX(1.2); opacity: 1; }
+  0% {
+    transform: scaleX(0.75);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scaleX(1.2);
+    opacity: 1;
+  }
 }
 
 .welcome-status-dot {
@@ -6163,13 +6185,27 @@ html.ef-welcome-done .welcome-overlay {
 }
 
 @keyframes welcomeDotPulse {
-  0% { transform: scale(0.75); opacity: 0.45; }
-  100% { transform: scale(1.35); opacity: 1; }
+  0% {
+    transform: scale(0.75);
+    opacity: 0.45;
+  }
+
+  100% {
+    transform: scale(1.35);
+    opacity: 1;
+  }
 }
 
 @keyframes welcomeFadeUp {
-  0% { opacity: 0; transform: translate3d(0, 16px, 0); }
-  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 /* ==========================================================================
@@ -6308,5 +6344,230 @@ a.header-book:hover,
   .hero-video-ctrl-btn {
     padding: 6px 12px !important;
     font-size: 10px !important;
+  }
+}
+
+/* ==========================================================================
+   5. Hero Video Switcher Pills
+   ========================================================================== */
+.hero-video-pills {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(14, 32, 24, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.hero-theme-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-theme-btn:hover {
+  color: #ffffff;
+}
+
+.hero-theme-btn.is-active {
+  background: #142e21;
+  color: #f7dfaf;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(196, 131, 60, 0.45);
+}
+
+/* ==========================================================================
+   6. Winter Snowfall Showcase Box (Seasons Section)
+   ========================================================================== */
+.snow-showcase-box {
+  margin-top: 56px;
+  background: #ffffff;
+  border: 1px solid rgba(196, 131, 60, 0.25);
+  border-radius: 24px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  box-shadow: 0 18px 48px -12px rgba(18, 40, 30, 0.12), 0 4px 16px rgba(196, 131, 60, 0.08);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+}
+
+.snow-showcase-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 60px -12px rgba(18, 40, 30, 0.18), 0 6px 20px rgba(196, 131, 60, 0.14);
+}
+
+.snow-showcase-video-wrap {
+  position: relative;
+  height: 440px;
+  overflow: hidden;
+  background: #0d1e15;
+}
+
+.snow-showcase-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: contrast(1.05) saturate(1.08) brightness(1.02);
+  transition: transform 0.8s ease;
+}
+
+.snow-showcase-box:hover .snow-showcase-video {
+  transform: scale(1.04);
+}
+
+.snow-showcase-video-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(13, 30, 21, 0.15) 0%, rgba(13, 30, 21, 0.5) 100%);
+  pointer-events: none;
+}
+
+.snow-video-badge {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(14, 32, 24, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(247, 223, 175, 0.4);
+  color: #f7dfaf;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+.snow-pulse-icon {
+  color: #60a5fa;
+  animation: snowSpin 6s linear infinite;
+}
+
+@keyframes snowSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.snow-showcase-content {
+  padding: clamp(32px, 5vw, 56px);
+}
+
+.snow-showcase-content h3 {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3.2vw, 42px);
+  line-height: 1.15;
+  margin: 16px 0;
+  color: var(--foreground);
+}
+
+.snow-showcase-content h3 em {
+  color: #c4833c;
+  font-style: italic;
+}
+
+.snow-showcase-content p {
+  color: var(--muted-foreground);
+  font-size: 14.5px;
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+/* ==========================================================================
+   7. Gallery Live Video Band
+   ========================================================================== */
+.gallery-video-band {
+  margin-top: 48px;
+}
+
+.gallery-video-card {
+  background: #ffffff;
+  border: 1px solid rgba(196, 131, 60, 0.24);
+  border-radius: 24px;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  align-items: center;
+  box-shadow: 0 16px 44px -10px rgba(18, 40, 30, 0.1);
+}
+
+.gallery-video-media {
+  position: relative;
+  height: 380px;
+  overflow: hidden;
+  background: #0d1e15;
+}
+
+.gallery-video-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: contrast(1.05) saturate(1.08) brightness(1.02);
+}
+
+.gallery-video-pill {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(14, 32, 24, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(247, 223, 175, 0.35);
+  color: #f7dfaf;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.gallery-video-info {
+  padding: clamp(28px, 4vw, 48px);
+}
+
+.gallery-video-info h3 {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2.8vw, 36px);
+  line-height: 1.2;
+  margin: 14px 0 16px;
+}
+
+.gallery-video-info p {
+  color: var(--muted-foreground);
+  font-size: 14.5px;
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .snow-showcase-box,
+  .gallery-video-card {
+    grid-template-columns: 1fr;
+  }
+  .snow-showcase-video-wrap,
+  .gallery-video-media {
+    height: 280px;
+  }
+  .snow-showcase-content,
+  .gallery-video-info {
+    padding: 26px 20px;
   }
 }
