@@ -49,28 +49,39 @@ export function useScrollProgress(): number {
   return progress;
 }
 
-export function useParallax<T extends HTMLElement = HTMLDivElement>(speed = 0.15): RefObject<T | null> {
+export function useParallax<T extends HTMLElement = HTMLDivElement>(speed = 0.12): RefObject<T | null> {
   const ref = useRef<T>(null);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    let rafId = 0;
-    const onScroll = () => {
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        const rect = el.getBoundingClientRect();
-        const windowHeight = window.innerHeight;
-        if (rect.bottom > 0 && rect.top < windowHeight) {
-          const offset = (rect.top + rect.height / 2 - windowHeight / 2) * speed;
-          el.style.setProperty('--parallax-y', `${Math.round(offset)}px`);
-        }
-      });
+    let ticking = false;
+    let windowHeight = window.innerHeight;
+
+    const onResize = () => {
+      windowHeight = window.innerHeight;
     };
-    onScroll();
+
+    const updateParallax = () => {
+      const rect = el.getBoundingClientRect();
+      if (rect.bottom > 0 && rect.top < windowHeight) {
+        const offset = (rect.top + rect.height / 2 - windowHeight / 2) * speed;
+        el.style.setProperty('--parallax-y', `${Math.round(offset)}px`);
+      }
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(updateParallax);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('resize', onResize, { passive: true });
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => {
+      window.removeEventListener('resize', onResize);
       window.removeEventListener('scroll', onScroll);
-      cancelAnimationFrame(rafId);
     };
   }, [speed]);
   return ref;

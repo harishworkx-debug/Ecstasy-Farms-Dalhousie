@@ -104,6 +104,11 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(sessionStorage.getItem('ef_welcome_shown')){document.documentElement.classList.add('ef-welcome-done')}}catch(e){}`,
+          }}
+        />
       </head>
       <body>
         {children}
