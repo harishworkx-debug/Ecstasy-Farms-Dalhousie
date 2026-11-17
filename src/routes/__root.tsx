@@ -78,7 +78,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no, viewport-fit=cover" },
+      { name: "theme-color", content: "#0c1a13" },
+      { name: "msapplication-TileColor", content: "#0c1a13" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
     ],
     links: [
       {
@@ -106,7 +110,30 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(sessionStorage.getItem('ef_welcome_shown')){document.documentElement.classList.add('ef-welcome-done')}}catch(e){}`,
+            __html: `
+              try {
+                if (sessionStorage.getItem('ef_welcome_shown')) {
+                  document.documentElement.classList.add('ef-welcome-done');
+                }
+              } catch(e) {}
+              // Prevent multi-touch pinch-to-zoom on mobile devices
+              document.addEventListener('touchstart', function(e) {
+                if (e.touches && e.touches.length > 1) {
+                  e.preventDefault();
+                }
+              }, { passive: false });
+              document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
+              document.addEventListener('gesturechange', function(e) { e.preventDefault(); }, { passive: false });
+              document.addEventListener('gestureend', function(e) { e.preventDefault(); }, { passive: false });
+              var lastTouchTime = 0;
+              document.addEventListener('touchend', function(e) {
+                var now = Date.now();
+                if (now - lastTouchTime <= 300) {
+                  e.preventDefault();
+                }
+                lastTouchTime = now;
+              }, { passive: false });
+            `,
           }}
         />
       </head>
