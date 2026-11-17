@@ -9,7 +9,7 @@ type RevealOptions = {
 export function useScrollReveal<T extends HTMLElement = HTMLDivElement>(
   options: RevealOptions = {},
 ): [RefObject<T | null>, boolean] {
-  const { threshold = 0.15, rootMargin = '0px 0px -10% 0px', once = true } = options;
+  const { threshold = 0.08, rootMargin = '0px 0px -30px 0px', once = true } = options;
   const ref = useRef<T>(null);
   const [visible, setVisible] = useState(false);
 
@@ -49,7 +49,7 @@ export function useScrollProgress(): number {
   return progress;
 }
 
-export function useParallax<T extends HTMLElement = HTMLDivElement>(speed = 0.3): RefObject<T | null> {
+export function useParallax<T extends HTMLElement = HTMLDivElement>(speed = 0.15): RefObject<T | null> {
   const ref = useRef<T>(null);
   useEffect(() => {
     const el = ref.current;
@@ -62,7 +62,7 @@ export function useParallax<T extends HTMLElement = HTMLDivElement>(speed = 0.3)
         const windowHeight = window.innerHeight;
         if (rect.bottom > 0 && rect.top < windowHeight) {
           const offset = (rect.top + rect.height / 2 - windowHeight / 2) * speed;
-          el.style.setProperty('--parallax-y', `${offset}px`);
+          el.style.setProperty('--parallax-y', `${Math.round(offset)}px`);
         }
       });
     };
@@ -74,4 +74,43 @@ export function useParallax<T extends HTMLElement = HTMLDivElement>(speed = 0.3)
     };
   }, [speed]);
   return ref;
+}
+
+export function useCountUp(
+  target: number,
+  duration = 1400,
+  start = false,
+  decimals = 0,
+  startFrom = 0
+): string {
+  const [value, setValue] = useState(startFrom);
+
+  useEffect(() => {
+    if (!start) return;
+    let startTime: number | null = null;
+    let animId = 0;
+
+    const step = (timestamp: number) => {
+      if (startTime === null) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // easeOutCubic curve
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const current = startFrom + (target - startFrom) * ease;
+      setValue(current);
+
+      if (progress < 1) {
+        animId = requestAnimationFrame(step);
+      } else {
+        setValue(target);
+      }
+    };
+
+    animId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animId);
+  }, [target, duration, start, startFrom]);
+
+  return decimals > 0
+    ? value.toFixed(decimals)
+    : Math.round(value).toLocaleString();
 }

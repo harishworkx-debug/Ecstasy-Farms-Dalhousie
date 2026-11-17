@@ -11,7 +11,7 @@ export const Route = createFileRoute("/amenities")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://id-preview--931288b8-7d62-4486-8189-0e70c1ec6f73.lovable.app/amenities" }],
+    links: [{ rel: "canonical", href: "https://www.ecstasyfarmsdalhousie.com/amenities" }],
   }),
   component: AmenitiesPage,
 });

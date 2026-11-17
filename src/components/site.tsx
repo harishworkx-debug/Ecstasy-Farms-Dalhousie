@@ -1,8 +1,8 @@
 import { Link, useRouterState } from '@tanstack/react-router';
 import { useEffect, useState, useRef, type ReactNode } from 'react';
-import { ArrowRight, ArrowUpRight, Menu, X, Phone, MapPin, MessageCircle, Mountain, Wifi, Car, Flame, UtensilsCrossed, PawPrint, Sparkles, Sun, Heart, Coffee, Zap, Compass, Trees, Check, ChevronLeft, ChevronRight, Plus, Snowflake, Leaf, CloudSun, Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Menu, X, Phone, MapPin, MessageCircle, Mountain, Wifi, Car, Flame, UtensilsCrossed, PawPrint, Sparkles, Sun, Heart, Coffee, Zap, Compass, Trees, Check, ChevronLeft, ChevronRight, Plus, Snowflake, Leaf, CloudSun, Play, Pause, Volume2, VolumeX, Star, Quote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useScrollReveal, useScrollProgress, useParallax } from '@/hooks/use-scroll-reveal';
+import { useScrollReveal, useScrollProgress, useParallax, useCountUp } from '@/hooks/use-scroll-reveal';
 import bannerVideo from '@/assets/Banner-video.mp4';
 import loobyImg from '@/assets/looby.png';
 import fernitureImg from '@/assets/ferniture.png';
@@ -41,15 +41,71 @@ function ScrollProgressBar() {
   );
 }
 
-function Reveal({ children, delay = 0, y = 40, className = '' }: { children: ReactNode; delay?: number; y?: number; className?: string }) {
+function Reveal({
+  children,
+  delay = 0,
+  y = 55,
+  animation = 'slide-up',
+  className = '',
+}: {
+  children: ReactNode;
+  delay?: number;
+  y?: number;
+  animation?: 'fade-up' | 'fade-down' | 'fade-left' | 'fade-right' | 'zoom-in' | 'blur-in' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right';
+  className?: string;
+}) {
   const [ref, visible] = useScrollReveal<HTMLDivElement>();
   return (
     <div
       ref={ref}
-      className={`reveal ${visible ? 'reveal-in' : ''} ${className}`}
+      className={`reveal reveal-${animation} ${visible ? 'reveal-in' : ''} ${className}`}
       style={{ '--reveal-delay': `${delay}ms`, '--reveal-y': `${y}px` } as React.CSSProperties}
     >
       {children}
+    </div>
+  );
+}
+
+function AnimatedStat({
+  value,
+  decimals = 0,
+  startFrom = 0,
+  prefix = null,
+  suffix = null,
+  label,
+  sub,
+  icon = null,
+  delay = 0,
+}: {
+  value: number;
+  decimals?: number;
+  startFrom?: number;
+  prefix?: ReactNode;
+  suffix?: ReactNode;
+  label: string;
+  sub: string;
+  icon?: ReactNode;
+  delay?: number;
+}) {
+  const [ref, visible] = useScrollReveal<HTMLDivElement>();
+  const count = useCountUp(value, 1500, visible, decimals, startFrom);
+
+  return (
+    <div
+      ref={ref}
+      className={`reveal reveal-slide-up ${visible ? 'reveal-in' : ''}`}
+      style={{ '--reveal-delay': `${delay}ms` } as React.CSSProperties}
+    >
+      <div className="stat-item">
+        <div className="stat-number">
+          {prefix}
+          {count}
+          {suffix}
+          {icon}
+        </div>
+        <div className="stat-label">{label}</div>
+        <div className="stat-sub">{sub}</div>
+      </div>
     </div>
   );
 }
@@ -179,6 +235,91 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
   );
 }
 
+function WelcomeOverlay() {
+  const [show, setShow] = useState(false);
+  const [exiting, setExiting] = useState(false);
+
+  useEffect(() => {
+    try {
+      const shown = sessionStorage.getItem('ef_welcome_shown');
+      if (!shown) {
+        setShow(true);
+        sessionStorage.setItem('ef_welcome_shown', 'true');
+
+        // Start smooth exit after 2.1s, fully dismiss after 2.6s
+        const exitTimer = setTimeout(() => {
+          setExiting(true);
+        }, 2100);
+
+        const removeTimer = setTimeout(() => {
+          setShow(false);
+        }, 2600);
+
+        return () => {
+          clearTimeout(exitTimer);
+          clearTimeout(removeTimer);
+        };
+      }
+    } catch {
+      // Graceful fallback if storage is restricted
+    }
+  }, []);
+
+  if (!show) return null;
+
+  const handleDismiss = () => {
+    setExiting(true);
+    setTimeout(() => setShow(false), 300);
+  };
+
+  return (
+    <div
+      className={`welcome-overlay ${exiting ? 'welcome-exiting' : ''}`}
+      onClick={handleDismiss}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Welcome to Ecstasy Farms Dalhousie"
+    >
+      <div className="welcome-backdrop-glow" aria-hidden="true" />
+      <div className="welcome-card">
+        <div className="welcome-logo-wrap">
+          <div className="welcome-logo-inner">
+            <img
+              src="/favicon.png"
+              alt="Ecstasy Farms Dalhousie Logo"
+              className="welcome-logo-img"
+            />
+          </div>
+        </div>
+
+        <span className="welcome-eyebrow">WELCOME TO</span>
+        <h1 className="welcome-title">
+          Ecstasy <em>Farms</em>
+        </h1>
+
+        <div className="welcome-divider" aria-hidden="true">
+          <span className="welcome-line" />
+          <span className="welcome-star">✦</span>
+          <span className="welcome-line" />
+        </div>
+
+        <div className="welcome-location-pill">
+          <MapPin size={12} className="welcome-pin-icon" />
+          <span>Village Manola · Dalhousie</span>
+        </div>
+
+        <p className="welcome-tagline">
+          A slower rhythm, a little closer to nature.
+        </p>
+
+        <div className="welcome-progress-wrap" aria-hidden="true">
+          <div className="welcome-progress-bar" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function SiteLayout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -186,12 +327,18 @@ export function SiteLayout({ children }: { children: ReactNode }) {
   useEffect(() => { setOpen(false); }, [pathname]);
   useEffect(() => { const onScroll = () => setScrolled(window.scrollY > 24); onScroll(); window.addEventListener('scroll', onScroll, { passive: true }); return () => window.removeEventListener('scroll', onScroll); }, []);
   return <div className="site-shell">
+    <WelcomeOverlay />
     <ScrollProgressBar />
     <header className={`site-header ${scrolled ? 'is-scrolled' : ''}`}>
       <div className="header-inner">
-        <Link to="/" className="brand" aria-label="Ecstasy Farms Dalhousie home"><span className="brand-mark"><Mountain size={23} strokeWidth={1.4}/></span><span className="brand-type"><strong>ECSTASY FARMS</strong><small>DALHOUSIE · HIMACHAL</small></span></Link>
+        <Link to="/" className="brand" aria-label="Ecstasy Farms Dalhousie home">
+          <span className="brand-mark">
+            <img src="/favicon.png" alt="Ecstasy Farms Dalhousie Logo" className="brand-logo-img" />
+          </span>
+          <span className="brand-type"><strong>ECSTASY FARMS</strong><small>DALHOUSIE · HIMACHAL</small></span>
+        </Link>
         <nav className="desktop-nav" aria-label="Main navigation">{links.map((link) => <Link key={link.to} to={link.to} className={pathname === link.to ? 'nav-active' : ''}>{link.label}</Link>)}</nav>
-        <div className="header-actions"><Button asChild variant="booking" size="sm" className="header-book"><a href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle size={16}/> Book Now</a></Button><Button variant="ghost" size="icon" className="menu-button" onClick={() => setOpen(!open)} aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open}>{open ? <X/> : <Menu/>}</Button></div>
+        <div className="header-actions"><Button asChild variant="booking" size="sm" className="header-book text-white"><a href={whatsapp} target="_blank" rel="noopener noreferrer" className="text-white"><MessageCircle size={16}/> Book Now</a></Button><Button variant="ghost" size="icon" className="menu-button" onClick={() => setOpen(!open)} aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open}>{open ? <X/> : <Menu/>}</Button></div>
       </div>
       {open && <nav className="mobile-nav" aria-label="Mobile navigation">{links.map((link) => <Link key={link.to} to={link.to} className={pathname === link.to ? 'nav-active' : ''}>{link.label}<ArrowUpRight size={16}/></Link>)}<a href={whatsapp} target="_blank" rel="noopener noreferrer">Book on WhatsApp <ArrowUpRight size={16}/></a></nav>}
     </header>
@@ -203,11 +350,14 @@ export function SiteLayout({ children }: { children: ReactNode }) {
         <span className="floating-label">Book Now</span>
       </a>
     </div>
-    <footer className="footer"><div className="container footer-top"><div className="footer-brand"><span className="eyebrow light">A LITTLE CLOSER TO NATURE</span><h2>Find your quiet<br/><em>in the hills.</em></h2><Button asChild variant="light" size="lg"><a href={whatsapp} target="_blank" rel="noopener noreferrer">Enquire on WhatsApp <ArrowUpRight/></a></Button></div><div className="footer-columns"><div><h3>Explore</h3><Link to="/rooms">Rooms</Link><Link to="/about">Our story</Link><Link to="/dining">Dining</Link><Link to="/gallery">Gallery</Link><Link to="/experiences">Experiences</Link></div><div><h3>Plan your stay</h3><Link to="/amenities">Amenities</Link><Link to="/location">Location</Link><Link to="/contact">Contact</Link><a href={directions} target="_blank" rel="noopener noreferrer">Directions</a></div><div><h3>Say hello</h3><a href="tel:+918219967293">+91 82199 67293</a><a href="tel:+919418010753">+91 94180 10753</a><a href={whatsapp} target="_blank" rel="noopener noreferrer">WhatsApp us</a><p>Village Manola, Dalhousie–Chamba Road<br/>Himachal Pradesh 176306</p></div></div></div><div className="container footer-bottom"><span>© {new Date().getFullYear()} Ecstasy Farms Dalhousie. All rights reserved.</span><span>Made for the slower moments.</span></div></footer>
+    <footer className="footer"><div className="container footer-top"><div className="footer-brand"><div className="footer-logo-row"><img src="/favicon.png" alt="Ecstasy Farms Dalhousie Logo" className="footer-logo-img" /><span className="eyebrow light">A LITTLE CLOSER TO NATURE</span></div><h2>Find your quiet<br/><em>in the hills.</em></h2><Button asChild variant="light" size="lg" className="footer-enquire-btn"><a href={whatsapp} target="_blank" rel="noopener noreferrer" className="footer-enquire-link text-primary font-semibold">Enquire on WhatsApp <ArrowUpRight/></a></Button></div><div className="footer-columns"><div><h3>Explore</h3><Link to="/rooms">Rooms</Link><Link to="/about">Our story</Link><Link to="/dining">Dining</Link><Link to="/gallery">Gallery</Link><Link to="/experiences">Experiences</Link></div><div><h3>Plan your stay</h3><Link to="/amenities">Amenities</Link><Link to="/location">Location</Link><Link to="/contact">Contact</Link><a href={directions} target="_blank" rel="noopener noreferrer">Directions</a></div><div><h3>Say hello</h3><a href="tel:+918219967293">+91 82199 67293</a><a href={whatsapp} target="_blank" rel="noopener noreferrer">WhatsApp: +91 82199 67293</a><p>Village Manola, Dalhousie–Chamba Road<br/>Himachal Pradesh 176306</p></div></div></div><div className="container footer-bottom"><span>© {new Date().getFullYear()} Ecstasy Farms Dalhousie. All rights reserved.</span><span>Made for the slower moments.</span></div></footer>
   </div>;
 }
 export function SectionLabel({ children }: { children: ReactNode }) { return <span className="eyebrow"><span className="eyebrow-line"/>{children}</span>; }
-export function BookingButton({ children = 'Book on WhatsApp', className = '' }: { children?: ReactNode; className?: string }) { return <Button asChild variant="booking" size="lg" className={className}><a href={whatsapp} target="_blank" rel="noopener noreferrer"><MessageCircle size={17}/>{children}<ArrowUpRight size={17}/></a></Button>; }
+export function BookingButton({ children = 'Book on WhatsApp', className = '', message }: { children?: ReactNode; className?: string; message?: string }) {
+  const url = message ? `https://wa.me/918219967293?text=${encodeURIComponent(message)}` : whatsapp;
+  return <Button asChild variant="booking" size="lg" className={`text-white ${className}`}><a href={url} target="_blank" rel="noopener noreferrer" className="text-white"><MessageCircle size={17}/>{children}<ArrowUpRight size={17}/></a></Button>;
+}
 export function TextLink({ to, children }: { to: '/' | '/rooms' | '/about' | '/amenities' | '/dining' | '/experiences' | '/gallery' | '/location' | '/contact'; children: ReactNode }) { return <Link to={to} className="text-link">{children}<ArrowUpRight size={18}/></Link>; }
 export function PageHero({ label, title, description, image, alt }: { label: string; title: string; description: string; image: string; alt: string }) {
   const parallaxRef = useParallax<HTMLDivElement>(0.15);
@@ -217,11 +367,427 @@ export function ClosingCTA({ title = 'Your mountain escape is waiting.', descrip
   const parallaxRef = useParallax<HTMLElement>(0.2);
   return <section ref={parallaxRef} className="closing-cta"><img src={terraceEvening} alt="Evening setup on the terrace at Ecstasy Farms" loading="lazy"/><div className="hero-shade"/><div className="container closing-content"><SectionLabel>MAKE ROOM FOR STILLNESS</SectionLabel><h2>{title}</h2><p>{description}</p><BookingButton>Enquire about your stay</BookingButton></div></section>;
 }
-export function RoomCards() { return <div className="room-grid">
-  <Reveal delay={0}><article className="room-card"><Link to="/rooms" className="room-photo"><img src={standardRoom} alt="Standard Room with double bed at Ecstasy Farms" loading="lazy"/><span className="photo-arrow"><ArrowUpRight size={18}/></span></Link><div className="room-copy"><span className="card-kicker">01 / YOUR STAY</span><h3>Standard Room</h3><p>A comfortable place to settle in after a day in the hills, with the peace and warmth of a homestay.</p><TextLink to="/rooms">Discover the room</TextLink></div></article></Reveal>
-  <Reveal delay={120}><article className="room-card"><Link to="/rooms" className="room-photo"><img src={deluxeRoom} alt="Deluxe AC Room with Terrace interior" loading="lazy"/><span className="photo-arrow"><ArrowUpRight size={18}/></span></Link><div className="room-copy"><span className="card-kicker">02 / YOUR STAY</span><h3>Deluxe AC Room<br/>with Terrace</h3><p>Comfortable interiors and an outdoor terrace for taking in the unhurried mountain atmosphere.</p><TextLink to="/rooms">Discover the room</TextLink></div></article></Reveal>
-  <Reveal delay={240}><article className="room-card"><Link to="/rooms" className="room-photo"><img src={balconyRoom} alt="Superior Deluxe Room with Balcony and mountain-facing windows" loading="lazy"/><span className="photo-arrow"><ArrowUpRight size={18}/></span></Link><div className="room-copy"><span className="card-kicker">03 / YOUR STAY</span><h3>Superior Deluxe Room<br/>with Balcony</h3><p>Make space for slower mornings, comfortable evenings and a private balcony overlooking the hills.</p><TextLink to="/rooms">Discover the room</TextLink></div></article></Reveal>
-</div>; }
+export function RoomCards() {
+  const rooms = [
+    {
+      kicker: '01 / HOMESTAY COMFORTS',
+      title: 'Standard Room',
+      tag: 'Cosy Homestay',
+      price: 'From ₹1,206 / night',
+      image: standardRoom,
+      alt: 'Standard Room with double bed at Ecstasy Farms Dalhousie',
+      desc: 'A comfortable, peaceful place to unwind after exploring Dalhousie, featuring genuine homestay warmth and mountain air.',
+      amenities: ['Mountain Air', 'Free Wi-Fi', 'Attached Bath', 'Homely Meals'],
+      message: 'Hello Ecstasy Farms Dalhousie, I would like to enquire about availability and booking for the Standard Room.'
+    },
+    {
+      kicker: '02 / POPULAR FOR COUPLES',
+      title: 'Deluxe AC Room with Terrace',
+      tag: 'Private Terrace & AC',
+      price: 'Popular Choice',
+      image: deluxeRoom,
+      alt: 'Deluxe AC Room with Terrace interior at Ecstasy Farms',
+      desc: 'Air-conditioned comfort paired with an expansive open terrace to enjoy tea, peaceful sunsets and starry Himalayan skies.',
+      amenities: ['Air Conditioning', 'Open Terrace', 'Scenic Outlook', 'Free Wi-Fi'],
+      message: 'Hello Ecstasy Farms Dalhousie, I would like to enquire about availability and booking for the Deluxe AC Room with Terrace.'
+    },
+    {
+      kicker: '03 / BEST MOUNTAIN VIEW',
+      title: 'Superior Deluxe Room with Balcony',
+      tag: 'Panoramic Balcony',
+      price: 'Top Choice for Families',
+      image: balconyRoom,
+      alt: 'Superior Deluxe Room with Balcony and valley outlook at Ecstasy Farms',
+      desc: 'Wake up to the hills at your own pace, step onto your private balcony, and absorb breathtaking valley views right from bed.',
+      amenities: ['Private Balcony', 'Himalayan Valley View', 'Spacious Seating', 'Free Wi-Fi'],
+      message: 'Hello Ecstasy Farms Dalhousie, I would like to enquire about availability and booking for the Superior Deluxe Room with Balcony.'
+    }
+  ];
+
+  return (
+    <div className="room-grid">
+      {rooms.map((room, idx) => (
+        <Reveal key={room.title} delay={idx * 140} animation={idx === 0 ? 'slide-right' : idx === 2 ? 'slide-left' : 'slide-up'}>
+          <article className="room-card">
+            <div className="room-photo-wrap">
+              <Link to="/rooms" className="room-photo">
+                <img src={room.image} alt={room.alt} loading="lazy"/>
+                <span className="room-tag-badge">{room.tag}</span>
+                <span className="room-price-badge">{room.price}</span>
+                <span className="photo-arrow"><ArrowUpRight size={18}/></span>
+              </Link>
+            </div>
+            <div className="room-copy">
+              <span className="card-kicker">{room.kicker}</span>
+              <h3>{room.title}</h3>
+              <p>{room.desc}</p>
+              <div className="room-card-amenities">
+                {room.amenities.map(item => (
+                  <span key={item} className="room-amenity-chip"><Check size={12} strokeWidth={2.4}/> {item}</span>
+                ))}
+              </div>
+              <div className="room-card-actions">
+                <BookingButton message={room.message} className="room-card-book-btn">
+                  Enquire on WhatsApp
+                </BookingButton>
+                <Link to="/rooms" className="room-card-link">
+                  Details <ArrowUpRight size={14}/>
+                </Link>
+              </div>
+            </div>
+          </article>
+        </Reveal>
+      ))}
+    </div>
+  );
+}
+
+function GoogleIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+    </svg>
+  );
+}
+
+const googleReviewCategories = [
+  { id: 'all', label: 'All Reviews', count: 231 },
+  { id: 'staff', label: 'Cooperative Staff', count: 19 },
+  { id: 'rooms', label: 'Clean Rooms', count: 21 },
+  { id: 'food', label: 'Homely Food', count: 10 },
+  { id: 'bbq', label: 'Barbecue & Bonfire', count: 17 },
+  { id: 'valley', label: 'Valley View', count: 6 },
+  { id: 'dogs', label: 'Pet Friendly & Dogs', count: 9 },
+  { id: 'hilltop', label: 'Hilltop Peace', count: 2 },
+];
+
+const googleReviewsData = [
+  {
+    id: '1',
+    name: 'Arpita Mondal',
+    badge: 'Local Guide · 81 reviews',
+    rating: 5,
+    timeAgo: '2 weeks ago',
+    tripType: 'Vacation · Friends',
+    text: "Really ecstatic stay at ecstasy farm stay. We had a great holiday. Far away from the crowd, location of the property is the main USP. Its open terrace, spacious rooms make it worth. Service is also very good. Food quality is very good and tasty. Sunny is very polite and cordial. He helped the guests in every possible way. Toilets are neat, clean and spacious. Highly recommend stay in Dalhousie area.",
+    tags: ['valley', 'rooms', 'staff', 'food'],
+    ratings: { rooms: 4, service: 5, location: 5 },
+    ownerResponse: 'Thank you so much for your kind words of appreciation. We value your precious review.'
+  },
+  {
+    id: '2',
+    name: 'Sudarshan Kumar',
+    badge: 'Local Guide · 257 reviews',
+    rating: 5,
+    timeAgo: '3 months ago',
+    tripType: '2 Couples Getaway',
+    text: "We recently had a wonderful stay at ECSTASY FARMS Homestay, and it truly exceeded our expectations. The location is beautiful, away from crowded hill stations, offering stunning views. The rooms were spacious, clean, comfortable, and well-maintained. Freshly prepared breakfast and homely meals were yummy and served hot on a well decorated table in the garden area. A special thanks to Lal Bahadur ji, Sunny & his wife for their outstanding service. They have 2 cute, lovely & friendly dogs Bruno and Bagheera!",
+    tags: ['food', 'staff', 'rooms', 'dogs', 'valley'],
+    ratings: { rooms: 5, service: 5, location: 5 },
+    ownerResponse: 'It was an absolute pleasure to host you. We will wait for your next visit.'
+  },
+  {
+    id: '3',
+    name: 'Imran Shaikh',
+    badge: 'Local Guide · 12 reviews',
+    rating: 5,
+    timeAgo: '5 months ago',
+    tripType: 'Family Vacation',
+    text: "I stayed at Ecstasy Farms for just one day, but the exceptional hospitality and warmth extended by Mr. Sunny made us change our plans and extend our stay for 4 more days! Every corner reflects cleanliness, care, and attention to detail. Our unlimited breakfast and dinner package was recommended by Mr. Navdeep Bhandari, the owner. He personally ensures that every guest enjoys a wonderful experience. Highly recommended for families, couples, and anyone seeking a peaceful getaway.",
+    tags: ['staff', 'food', 'rooms'],
+    ratings: { rooms: 5, service: 5, location: 5 },
+    ownerResponse: 'Your words of appreciation are like oxygen for our efforts. Waiting for you again at Ecstasy Farms.'
+  },
+  {
+    id: '4',
+    name: 'Sagar Agarwal',
+    badge: '6 reviews',
+    rating: 5,
+    timeAgo: '5 months ago',
+    tripType: 'Vacation with Friends',
+    text: "Best Stay Near Dalhousie & Khajjiar — Highly Recommended! If you’re planning a trip to Dalhousie or Khajjiar, look no further than Ecstasy Farm — just book it! The rooms are immaculately clean with a lovely view. The food is home-style cooking that is hygienic, flavourful, and soul-satisfying. 4-star quality service at unmatched prices. Special appreciation for Mr. Navdeep (Owner) and Mr. Sunny. And to top it all off, the music night was an absolute boom!",
+    tags: ['bbq', 'food', 'staff', 'rooms', 'valley'],
+    ratings: { rooms: 5, service: 5, location: 5 },
+    ownerResponse: 'Thank you so much for your lovely words. We were indeed delighted to serve you.'
+  },
+  {
+    id: '5',
+    name: 'Prithvinka Rao',
+    badge: '6 reviews',
+    rating: 5,
+    timeAgo: '4 weeks ago',
+    tripType: 'Family of 11',
+    text: "I travelled with my family of 11 people here. Had a wonderful experience. The hygiene, hospitality, response from the owner and caretaker’s side everything was impressive and warm. The house is filled with greenery all around, maintained extremely clean and hygienic. Has all required amenities. The caretaker made us feel extremely comfortable and at home. The food was well prepared and delicious. Will recommend it to anybody.",
+    tags: ['rooms', 'staff', 'food'],
+    ratings: { rooms: 5, service: 5, location: 4 },
+    ownerResponse: 'Thank you so much for your kind words. Your recommendations mean the world to us.'
+  },
+  {
+    id: '6',
+    name: 'Editions Phloème',
+    badge: 'International Guest · 20 photos',
+    rating: 5,
+    timeAgo: '10 months ago',
+    tripType: 'Couple Vacation',
+    text: "Ecstasy Farms is a little paradise in Nature with the mountains. The chef is a Master, here you can eat the best food of India, all is fresh and delicious. In the evening, you can eat under the stars by the fireplace. The scenic beautiful room is very clean. In this peaceful place, Sunny will do everything to make your stay magical. An exceptional place to stay!",
+    tags: ['food', 'bbq', 'valley', 'rooms'],
+    ratings: { rooms: 5, service: 5, location: 5 },
+    ownerResponse: 'Thank you so much for your lovely words. It motivates us all the more.'
+  },
+  {
+    id: '7',
+    name: 'Ashok Kumar',
+    badge: 'Verified Guest',
+    rating: 5,
+    timeAgo: '2 months ago',
+    tripType: 'Family Vacation',
+    text: "A Wonderful and Peaceful Stay at Ecstasy Farms, Dalhousie. Truly beautiful place with a very peaceful location and a warm, homely atmosphere. Surroundings are serene, views are breathtaking, and delicious home-cooked food makes the stay even more special. The lovely and welcoming hosts make you feel completely at home. Highly recommended for families visiting Dalhousie!",
+    tags: ['valley', 'food', 'hilltop'],
+    ratings: { rooms: 5, service: 5, location: 5 },
+    ownerResponse: 'Thank you so much for your kind words of appreciation.'
+  },
+  {
+    id: '8',
+    name: 'Shalviya Upadhyay',
+    badge: 'Verified Guest',
+    rating: 5,
+    timeAgo: '4 weeks ago',
+    tripType: 'Family Vacation',
+    text: "Wonderful stay surrounded by nature. Great hospitality, very hygienic rooms. The food was delicious, served with positivity. The staff was very welcoming and generous. We enjoyed a lot staying there for 2 days. Would definitely recommend everyone to come and enjoy here with family or friends.",
+    tags: ['rooms', 'staff', 'food'],
+    ratings: { rooms: 5, service: 5, location: 5 },
+    ownerResponse: 'Thank you so much for your kind words of appreciation.'
+  },
+  {
+    id: '9',
+    name: 'Aditi Sharma',
+    badge: 'Local Guide · 24 reviews',
+    rating: 5,
+    timeAgo: 'Verified Stay',
+    tripType: 'Family & Pet Lovers',
+    text: "The property is secluded and a paradise for dog lovers. They have adorable dogs that are super friendly. The staff pampers you, and takes really good care of you. The meals are served basis the time mentioned by you and are delicious (ask for their paneer bhurji) and just like home-cooked food. The rooms on the ground floor are exceptionally huge with an uninterrupted view of the valley.",
+    tags: ['dogs', 'food', 'staff', 'valley'],
+    ratings: { rooms: 5, service: 5, location: 5 },
+    ownerResponse: 'Thank you so much for your kind words. We value your support and look forward to seeing you again.'
+  },
+  {
+    id: '10',
+    name: 'Suresh Kapur',
+    badge: 'Local Guide · 110 reviews',
+    rating: 5,
+    timeAgo: 'Repeat Guest',
+    tripType: 'Group of 9',
+    text: "This is our second stay here — it is only getting better. The host Mr. Navdeep Bhandari is a super host: polite and attentive, he showers his hospitality on his guests. The cook prepares food of different cuisines at short notice. The Chambyali Dham he prepared was out of this world and served in traditional Himachal style. The property atop the hill gives plenty of cool mountain breeze.",
+    tags: ['food', 'staff', 'hilltop'],
+    ratings: { rooms: 5, service: 5, location: 5 },
+    ownerResponse: 'Respected Sir, thank you for trusting in me and choosing to stay with us. Such appreciation is overwhelming.'
+  },
+  {
+    id: '11',
+    name: 'Rishabh Mittal',
+    badge: '7 reviews',
+    rating: 5,
+    timeAgo: '3 months ago',
+    tripType: 'Repeat Guest',
+    text: "If you want a peaceful stay away from city's hustle and bustle, comfortable stay, delicious home cooked food, excellent service, I would recommend Ecstasy Farms. I have been there many times — for me no trip to Dalhousie is complete without this homestay. Caretaker Sunny and chef are helpful, and the owner Mr. Bhandari always responds to every single message.",
+    tags: ['valley', 'food', 'staff'],
+    ratings: { rooms: 5, service: 5, location: 5 },
+    ownerResponse: 'Thank you so much for your lovely words and long association with us.'
+  },
+  {
+    id: '12',
+    name: 'Archana Rohela',
+    badge: 'Local Guide · 18 reviews',
+    rating: 5,
+    timeAgo: 'Verified Stay',
+    tripType: 'Women Friends',
+    text: "Amazing place with absolutely serene and picturesque surroundings topped with excellent staff with courteous approach. Since we were only two ladies, felt completely safe at this place due to cordial staff and decent families staying there. The personal touch given by host Mr Bhandari who served us with his special homegrown lemongrass tea was unforgettable.",
+    tags: ['staff', 'valley'],
+    ratings: { rooms: 5, service: 5, location: 5 },
+    ownerResponse: 'Thank you so much. It was indeed a pleasure to host you. Such down-to-earth guests are a blessing.'
+  },
+  {
+    id: '13',
+    name: 'Dhruv Gupta',
+    badge: 'Local Guide · 18 reviews',
+    rating: 5,
+    timeAgo: 'Verified Stay',
+    tripType: 'Pet-Friendly Stay',
+    text: "An amazing homestay with gorgeous valley views, the upper floor rooms have plenty of sunlight and mountain views in the morning. The owner is very helpful, generous and kind. The homestay is pet-friendly and our dog enjoyed roaming around and they helped us out with food for her as well. Highly recommend!",
+    tags: ['dogs', 'valley', 'staff'],
+    ratings: { rooms: 5, service: 5, location: 5 },
+    ownerResponse: 'Thank you so much for your kind words of appreciation.'
+  },
+  {
+    id: '14',
+    name: 'Surbhi Sur',
+    badge: '10 reviews',
+    rating: 5,
+    timeAgo: 'Verified Stay',
+    tripType: 'Family Vacation',
+    text: "The property is built on a beautiful location, with a view of mountains from each room. Rooms are well maintained, clean and felt like living in our own home. We had a barbecue night with bonfire and music which was beyond our expectations. In short it is the best place to stay while in Dalhousie, and very budget friendly.",
+    tags: ['bbq', 'rooms', 'valley'],
+    ratings: { rooms: 5, service: 5, location: 5 },
+    ownerResponse: 'Thank you so much for your kind words. Would love to have you again and again.'
+  }
+];
+
+export function ReviewsSection() {
+  const [selectedTag, setSelectedTag] = useState<string>('all');
+  const [showAll, setShowAll] = useState(false);
+
+  const filteredReviews = selectedTag === 'all'
+    ? googleReviewsData
+    : googleReviewsData.filter(r => r.tags.includes(selectedTag));
+
+  const visibleReviews = showAll ? filteredReviews : filteredReviews.slice(0, 6);
+
+  return (
+    <section className="reviews-section section-space">
+      <div className="container">
+        <Reveal>
+          <div className="section-heading centered">
+            <SectionLabel>GUEST EXPERIENCES</SectionLabel>
+            <h2>Words from <em>our guests.</em></h2>
+            <p>Real stories and impressions from travellers who found their quiet in our corner of Dalhousie.</p>
+          </div>
+        </Reveal>
+
+        {/* Google Trust Bar */}
+        <Reveal delay={100}>
+          <div className="reviews-summary">
+            <div className="reviews-summary-left">
+              <div className="reviews-score-box">
+                <span className="reviews-score-big">4.8</span>
+                <span className="reviews-score-max">/ 5.0</span>
+              </div>
+              <div className="reviews-stars-wrap">
+                <div className="reviews-stars">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={17} fill="#eab308" />
+                  ))}
+                </div>
+                <div className="reviews-meta-count">231+ Google Reviews</div>
+                <div className="reviews-meta-sub">Verified Guest Ratings · Village Manola, Dalhousie</div>
+              </div>
+              <div className="google-brand-tag">
+                <GoogleIcon size={16} />
+                <span>Google Verified</span>
+              </div>
+            </div>
+            <a
+              href="https://www.google.com/maps/place/Ecstasy+Farms+Dalhousie/@32.5720038,75.9889842,17z"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="reviews-write-btn"
+            >
+              Write a Review <ArrowUpRight size={15} />
+            </a>
+          </div>
+        </Reveal>
+
+        {/* Category Filter Chips */}
+        <Reveal delay={150}>
+          <div className="reviews-filter-bar" role="tablist" aria-label="Filter reviews by category">
+            {googleReviewCategories.map(cat => (
+              <button
+                key={cat.id}
+                type="button"
+                className={`reviews-filter-chip ${selectedTag === cat.id ? 'active' : ''}`}
+                onClick={() => {
+                  setSelectedTag(cat.id);
+                  setShowAll(false);
+                }}
+              >
+                <span>{cat.label}</span>
+                <span className="chip-count">{cat.count}</span>
+              </button>
+            ))}
+          </div>
+        </Reveal>
+
+        {/* Reviews Grid */}
+        <div className="reviews-grid">
+          {visibleReviews.map((rev, idx) => (
+            <Reveal key={rev.id} delay={(idx % 3) * 110} animation={idx % 3 === 0 ? 'slide-right' : idx % 3 === 2 ? 'slide-left' : 'slide-up'}>
+              <article className="review-card">
+                <div>
+                  <div className="review-card-top">
+                    <div className="review-author-wrap">
+                      <div className="review-avatar">
+                        {rev.name.charAt(0)}
+                      </div>
+                      <div className="review-author-info">
+                        <div className="review-author-name">{rev.name}</div>
+                        {rev.badge && <div className="review-badge">{rev.badge}</div>}
+                      </div>
+                    </div>
+                    <GoogleIcon size={18} />
+                  </div>
+
+                  <div className="review-stars">
+                    {[...Array(rev.rating)].map((_, i) => (
+                      <Star key={i} size={14} fill="#eab308" />
+                    ))}
+                  </div>
+
+                  <div className="review-trip-tag">
+                    {rev.tripType || 'Homestay Stay'} · {rev.timeAgo}
+                  </div>
+
+                  <p className="review-text">"{rev.text}"</p>
+                </div>
+
+                <div>
+                  {rev.ratings && (
+                    <div className="review-subratings">
+                      {rev.ratings.rooms && <span>Rooms: <strong>{rev.ratings.rooms}/5</strong></span>}
+                      {rev.ratings.service && <span>Service: <strong>{rev.ratings.service}/5</strong></span>}
+                      {rev.ratings.location && <span>Location: <strong>{rev.ratings.location}/5</strong></span>}
+                    </div>
+                  )}
+
+                  {rev.ownerResponse && (
+                    <div className="review-response">
+                      <div className="review-response-author">Response from Navdeep (Host)</div>
+                      <p className="m-0 text-xs text-muted-foreground">{rev.ownerResponse}</p>
+                    </div>
+                  )}
+                </div>
+              </article>
+            </Reveal>
+          ))}
+        </div>
+
+        {/* Expand / View All Actions */}
+        <div className="reviews-bottom-actions">
+          {filteredReviews.length > 6 && (
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setShowAll(!showAll)}
+            >
+              {showAll ? 'Show Fewer Reviews' : `Show All ${filteredReviews.length} Reviews`}
+            </Button>
+          )}
+          <Button asChild variant="booking" size="lg" className="text-white">
+            <a
+              href="https://www.google.com/maps/place/Ecstasy+Farms+Dalhousie/@32.5720038,75.9889842,17z"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white"
+            >
+              Read All 231 Reviews on Google <ArrowUpRight size={17} />
+            </a>
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 export function HomePage() {
   const heroParallaxRef = useParallax<HTMLDivElement>(0.12);
@@ -234,37 +800,80 @@ export function HomePage() {
       </div>
       <div className="hero-shade"/>
       <div className="container home-hero-content">
-        <span className="eyebrow light hero-eyebrow"><span className="eyebrow-line"/>ECSTASY FARMS · DALHOUSIE</span>
+        <div className="hero-eyebrow-container">
+          <span className="eyebrow light hero-eyebrow"><span className="eyebrow-line"/>ECSTASY FARMS · DALHOUSIE</span>
+          <span className="hero-rating-pill"><Star size={13} className="star-gold fill-current" /> 4.8 Rating · 231+ Google Reviews</span>
+        </div>
         <h1 className="home-hero-title">Escape to the<br/><em>Quiet Side</em><br/>of Dalhousie</h1>
-        <p className="home-hero-sub">A peaceful Himalayan homestay surrounded by mountain views, fresh air and warm local hospitality.</p>
-        <div className="hero-actions"><BookingButton>Book Your Stay</BookingButton><Button asChild variant="heroOutline" size="lg"><a href="tel:+918219967293"><Phone size={17}/> Call Now</a></Button></div>
-        <Link to="/rooms" className="hero-explore">EXPLORE ROOMS <ArrowRight size={17}/></Link>
+        <p className="home-hero-sub">A serene Himalayan homestay nestled in Village Manola — surrounded by pine hills, panoramic valley outlooks, home-cooked meals and heartfelt warmth.</p>
+        <div className="hero-actions">
+          <BookingButton>Book Your Stay</BookingButton>
+          <Button asChild variant="heroOutline" size="lg">
+            <a href="tel:+918219967293"><Phone size={17}/> Call: 082199 67293</a>
+          </Button>
+        </div>
+        <div className="hero-features-bar">
+          <div className="hero-feat-item"><Mountain size={14}/> <span>Valley &amp; Pine Views</span></div>
+          <span className="feat-sep">·</span>
+          <div className="hero-feat-item"><PawPrint size={14}/> <span>Pet-Friendly Stay</span></div>
+          <span className="feat-sep">·</span>
+          <div className="hero-feat-item"><UtensilsCrossed size={14}/> <span>Homely Food</span></div>
+          <span className="feat-sep">·</span>
+          <div className="hero-feat-item"><Flame size={14}/> <span>Bonfire &amp; BBQ</span></div>
+        </div>
       </div>
       <div className="hero-bottom"><span>32°34' N &nbsp; 75°59' E</span><span>VILLAGE MANOLA · HIMACHAL PRADESH</span><span className="scroll-hint">SCROLL TO EXPLORE <span className="scroll-arrow" /></span></div>
     </section>
 
-    {/* Stats band */}
+    {/* Stats band with animated count up */}
     <section className="stats-band">
-      <div className="stats-grid">
-        <Reveal delay={0}><div className="stat-item"><div className="stat-number">2018</div><div className="stat-label">Hosting Since</div></div></Reveal>
-        <Reveal delay={100}><div className="stat-item"><div className="stat-number">3</div><div className="stat-label">Room Types</div></div></Reveal>
-        <Reveal delay={200}><div className="stat-item"><div className="stat-number">₹1,206</div><div className="stat-label">Starting / Night</div></div></Reveal>
-        <Reveal delay={300}><div className="stat-item"><div className="stat-number">7 km</div><div className="stat-label">From Banikhet</div></div></Reveal>
+      <div className="container">
+        <div className="stats-grid">
+          <AnimatedStat
+            value={4.8}
+            decimals={1}
+            label="Google Rating"
+            sub="From 231+ verified guest reviews"
+            icon={<Star size={24} className="stat-star inline" />}
+            delay={0}
+          />
+          <AnimatedStat
+            value={231}
+            suffix="+"
+            label="Verified Reviews"
+            sub="Top-rated homestay experience"
+            delay={100}
+          />
+          <AnimatedStat
+            value={2018}
+            startFrom={1995}
+            label="Hosting Since"
+            sub="Years of genuine family care"
+            delay={200}
+          />
+          <AnimatedStat
+            value={1206}
+            prefix={<span className="stat-currency">₹</span>}
+            label="Starting / Night"
+            sub="Affordable Himalayan getaway"
+            delay={300}
+          />
+        </div>
       </div>
     </section>
 
     <section className="intro-section section-space"><div className="container intro-grid">
-      <Reveal delay={0}><div className="intro-image-wrap" ref={introParallaxRef}><img src={mountainGateway} alt="Mountain view beyond the entrance to Ecstasy Farms" loading="lazy"/><div className="image-caption">THE WAY TO SLOWER DAYS · MANOLA</div></div></Reveal>
-      <Reveal delay={150}><div className="intro-copy"><SectionLabel>WELCOME TO ECSTASY FARMS</SectionLabel><h2>A slower rhythm,<br/><em>a little closer</em><br/>to nature.</h2><p>Set in Village Manola along the Dalhousie–Chamba Road, Ecstasy Farms is a quiet place to pause. Far from the rush of town, the days unfold with mountain air, open views and the easy comfort of being looked after.</p><p>Whether you're travelling together, taking a breather as a couple or bringing your furry friend along, there's room here to simply be.</p><p>Tucked away from the crowded town centre, the property sits among trees and open sky — a gentle reminder that some of the best moments happen when you're not in a hurry to go anywhere.</p><TextLink to="/about">Our story</TextLink></div></Reveal>
+      <Reveal animation="slide-right" delay={0}><div className="intro-image-wrap" ref={introParallaxRef}><img src={mountainGateway} alt="Mountain view beyond the entrance to Ecstasy Farms" loading="lazy"/><div className="image-caption">THE WAY TO SLOWER DAYS · MANOLA</div></div></Reveal>
+      <Reveal animation="slide-left" delay={150}><div className="intro-copy"><SectionLabel>WELCOME TO ECSTASY FARMS</SectionLabel><h2>A slower rhythm,<br/><em>a little closer</em><br/>to nature.</h2><p>Set in Village Manola along the Dalhousie–Chamba Road, Ecstasy Farms is a quiet place to pause. Far from the rush of town, the days unfold with mountain air, open views and the easy comfort of being looked after.</p><p>Whether you're travelling together, taking a breather as a couple or bringing your furry friend along, there's room here to simply be.</p><p>Tucked away from the crowded town centre, the property sits among trees and open sky — a gentle reminder that some of the best moments happen when you're not in a hurry to go anywhere.</p><TextLink to="/about">Our story</TextLink></div></Reveal>
     </div></section>
 
     <section className="why-section section-space"><div className="container">
-      <Reveal><div className="section-heading centered"><SectionLabel>THE BEAUTY OF BEING HERE</SectionLabel><h2>Little things. <em>Lasting memories.</em></h2><p>A stay shaped by the simple pleasures of the hills.</p></div></Reveal>
+      <Reveal animation="zoom-in"><div className="section-heading centered"><SectionLabel>THE BEAUTY OF BEING HERE</SectionLabel><h2>Little things. <em>Lasting memories.</em></h2><p>A stay shaped by the genuine warmth and simple pleasures of the hills.</p></div></Reveal>
       <div className="why-grid">
-        <Reveal delay={0}><div className="why-item"><Mountain/><h3>Room to breathe</h3><p>Mountain and valley views, fresh air and a slower pace away from the crowded town centre.</p></div></Reveal>
-        <Reveal delay={100}><div className="why-item"><UtensilsCrossed/><h3>Food that feels like home</h3><p>Fresh, hygienic home-cooked meals, with options to suit your preferences.</p></div></Reveal>
-        <Reveal delay={200}><div className="why-item"><PawPrint/><h3>Everyone is welcome</h3><p>Time together for families, couples, groups and your four-legged companions.</p></div></Reveal>
-        <Reveal delay={300}><div className="why-item"><Flame/><h3>Evenings worth keeping</h3><p>Ask about bonfire and BBQ arrangements for evenings under the Himalayan sky.</p></div></Reveal>
+        <Reveal animation="slide-right" delay={0}><div className="why-item"><div className="why-icon-wrap"><Mountain size={28}/></div><h3>Room to breathe</h3><p>Mountain and valley views, fresh pine air and a peaceful rhythm far away from crowded town centres.</p></div></Reveal>
+        <Reveal animation="slide-up" delay={120}><div className="why-item"><div className="why-icon-wrap"><UtensilsCrossed size={28}/></div><h3>Food that feels like home</h3><p>Fresh, hygienic home-cooked meals prepared with care, with menus customizable to your preferences.</p></div></Reveal>
+        <Reveal animation="slide-up" delay={240}><div className="why-item"><div className="why-icon-wrap"><PawPrint size={28}/></div><h3>Everyone is welcome</h3><p>Family-friendly spaces where children, couples and your four-legged pets (meet Bruno &amp; Bagheera!) feel at home.</p></div></Reveal>
+        <Reveal animation="slide-left" delay={360}><div className="why-item"><div className="why-icon-wrap"><Flame size={28}/></div><h3>Evenings worth keeping</h3><p>Gather under the starry Himalayan sky around warm bonfire and BBQ arrangements on request.</p></div></Reveal>
       </div>
     </div></section>
 
@@ -274,31 +883,37 @@ export function HomePage() {
       <Reveal delay={200}><div className="price-note">Rooms from ₹1,206/night* <span>· Rates may vary. Please enquire for current availability and pricing.</span></div></Reveal>
     </div></section>
 
-    <section className="editorial-band"><div className="editorial-image"><img src={terraceEvening} alt="Terrace table prepared for a relaxed evening at Ecstasy Farms" loading="lazy"/></div><Reveal><div className="editorial-copy"><SectionLabel>THE GOOD PART OF STAYING IN</SectionLabel><h2>Gather around.<br/><em>Stay a while.</em></h2><p>Here, the best moments aren't scheduled. They happen over home-cooked food, unhurried conversation and evenings spent together on the terrace. Bonfire and BBQ can be arranged on request.</p><TextLink to="/dining">Discover dining</TextLink></div></Reveal></section>
+    <section className="editorial-band">
+      <Reveal animation="slide-right"><div className="editorial-image"><img src={terraceEvening} alt="Terrace table prepared for a relaxed evening at Ecstasy Farms" loading="lazy"/></div></Reveal>
+      <Reveal animation="slide-left" delay={150}><div className="editorial-copy"><SectionLabel>THE GOOD PART OF STAYING IN</SectionLabel><h2>Gather around.<br/><em>Stay a while.</em></h2><p>Here, the best moments aren't scheduled. They happen over home-cooked food, unhurried conversation and evenings spent together on the terrace. Bonfire and BBQ can be arranged on request.</p><TextLink to="/dining">Discover dining</TextLink></div></Reveal>
+    </section>
 
     {/* Host section */}
     <section className="host-section section-space"><div className="container host-grid">
-      <Reveal delay={0}><div className="host-image-wrap"><img src={propertyDaylight} alt="Ecstasy Farms homestay property" loading="lazy"/><div className="host-since"><small>HOSTING SINCE</small><span>2018</span></div></div></Reveal>
-      <Reveal delay={150}><div className="host-copy"><SectionLabel>YOUR HOSTS</SectionLabel><h2>Looked after by<br/>people who <em>care.</em></h2><p>Ecstasy Farms has been hosted by Navdeep since 2018, with caretaking support from Sunny, Sunil and their family. Their warmth and attention are what make a stay here feel less like a booking and more like being welcomed into a home.</p><p>From arranging meals to helping plan your day, the team is always nearby — never in the way, always at hand when you need them.</p><div className="host-name">Navdeep</div><div className="host-role">Host · Since 2018</div></div></Reveal>
+      <Reveal animation="slide-right" delay={0}><div className="host-image-wrap"><img src={propertyDaylight} alt="Ecstasy Farms homestay property" loading="lazy"/><div className="host-since"><small>HOSTING SINCE</small><span>2018</span></div></div></Reveal>
+      <Reveal animation="slide-left" delay={150}><div className="host-copy"><SectionLabel>YOUR HOSTS</SectionLabel><h2>Looked after by<br/>people who <em>care.</em></h2><p>Ecstasy Farms has been hosted by Navdeep since 2018, with caretaking support from Sunny, Sunil and their family. Their warmth and attention are what make a stay here feel less like a booking and more like being welcomed into a home.</p><p>From arranging meals to helping plan your day, the team is always nearby — never in the way, always at hand when you need them.</p><div className="host-name">Navdeep</div><div className="host-role">Host · Since 2018</div></div></Reveal>
     </div></section>
 
     <section className="nature-section section-space"><div className="container nature-grid">
-      <Reveal delay={0}><div className="nature-copy"><SectionLabel>FOR EVERY MEMBER OF THE FAMILY</SectionLabel><h2>Good company<br/>has <em>four paws.</em></h2><p>Bring your furry companions along. With outdoor spaces and a welcoming, pet-friendly atmosphere, your time away can include the whole family.</p><TextLink to="/experiences">Explore experiences</TextLink></div></Reveal>
-      <Reveal delay={150}><div className="nature-image"><img src={gardenEvening} alt="Green outdoor garden and seating area at Ecstasy Farms" loading="lazy"/></div></Reveal>
+      <Reveal animation="slide-right" delay={0}><div className="nature-copy"><SectionLabel>FOR EVERY MEMBER OF THE FAMILY</SectionLabel><h2>Good company<br/>has <em>four paws.</em></h2><p>Bring your furry companions along. With outdoor spaces and a welcoming, pet-friendly atmosphere, your time away can include the whole family.</p><TextLink to="/experiences">Explore experiences</TextLink></div></Reveal>
+      <Reveal animation="slide-left" delay={150}><div className="nature-image"><img src={gardenEvening} alt="Green outdoor garden and seating area at Ecstasy Farms" loading="lazy"/></div></Reveal>
     </div></section>
 
     {/* Seasons section */}
     <section className="section-space"><div className="container">
-      <Reveal><div className="section-heading centered"><SectionLabel>WHEN TO VISIT</SectionLabel><h2>Every season<br/>has its own <em>magic.</em></h2><p>The hills change through the year — here's what to expect in each season.</p></div></Reveal>
+      <Reveal animation="zoom-in"><div className="section-heading centered"><SectionLabel>WHEN TO VISIT</SectionLabel><h2>Every season<br/>has its own <em>magic.</em></h2><p>The hills change through the year — here's what to expect in each season.</p></div></Reveal>
       <div className="seasons-grid">
-        <Reveal delay={0}><div className="season-card"><div className="season-icon"><Snowflake/></div><h3>Winter</h3><div className="season-months">DEC — FEB</div><p>Crisp mountain air and the possibility of snow. Cosy up indoors with warm meals and quiet evenings by the fire.</p></div></Reveal>
-        <Reveal delay={100}><div className="season-card"><div className="season-icon"><Leaf/></div><h3>Spring</h3><div className="season-months">MAR — APR</div><p>The hills come alive with greenery and flowers. Pleasant days and cool nights make it perfect for nature walks.</p></div></Reveal>
-        <Reveal delay={200}><div className="season-card"><div className="season-icon"><Sun/></div><h3>Summer</h3><div className="season-months">MAY — JUN</div><p>The busiest time for good reason — clear views, comfortable weather and the ideal escape from the plains.</p></div></Reveal>
-        <Reveal delay={300}><div className="season-card"><div className="season-icon"><CloudSun/></div><h3>Monsoon</h3><div className="season-months">JUL — SEP</div><p>Misty valleys, lush green surroundings and the sound of rain on the roof. A deeply peaceful time to disconnect.</p></div></Reveal>
+        <Reveal animation="slide-right" delay={0}><div className="season-card"><div className="season-icon"><Snowflake/></div><h3>Winter</h3><div className="season-months">DEC — FEB</div><p>Crisp mountain air and the possibility of snow. Cosy up indoors with warm meals and quiet evenings by the fire.</p></div></Reveal>
+        <Reveal animation="slide-up" delay={120}><div className="season-card"><div className="season-icon"><Leaf/></div><h3>Spring</h3><div className="season-months">MAR — APR</div><p>The hills come alive with greenery and flowers. Pleasant days and cool nights make it perfect for nature walks.</p></div></Reveal>
+        <Reveal animation="slide-up" delay={240}><div className="season-card"><div className="season-icon"><Sun/></div><h3>Summer</h3><div className="season-months">MAY — JUN</div><p>The busiest time for good reason — clear views, comfortable weather and the ideal escape from the plains.</p></div></Reveal>
+        <Reveal animation="slide-left" delay={360}><div className="season-card"><div className="season-icon"><CloudSun/></div><h3>Monsoon</h3><div className="season-months">JUL — SEP</div><p>Misty valleys, lush green surroundings and the sound of rain on the roof. A deeply peaceful time to disconnect.</p></div></Reveal>
       </div>
     </div></section>
 
-    <section className="location-teaser" ref={locationParallaxRef}><img src={propertyGarden} alt="Ecstasy Farms among trees and garden greenery" loading="lazy"/><div className="hero-shade"/><div className="container location-teaser-content"><Reveal><SectionLabel>THE ROAD LESS HURRIED</SectionLabel><h2>A little away.<br/><em>Right where you need to be.</em></h2><p>Village Manola · Approximately 7 km from Banikhet and 15 km from Dalhousie town.</p><TextLink to="/location">Find your way here</TextLink></Reveal></div></section>
+    <section className="location-teaser" ref={locationParallaxRef}><img src={propertyGarden} alt="Ecstasy Farms among trees and garden greenery" loading="lazy"/><div className="hero-shade"/><div className="container location-teaser-content"><Reveal animation="zoom-in"><SectionLabel>THE ROAD LESS HURRIED</SectionLabel><h2>A little away.<br/><em>Right where you need to be.</em></h2><p>Village Manola · Approximately 7 km from Banikhet and 15 km from Dalhousie town.</p><TextLink to="/location">Find your way here</TextLink></Reveal></div></section>
+
+    {/* Guest Reviews Section */}
+    <ReviewsSection />
 
     {/* FAQ section */}
     <section className="faq-section section-space"><div className="container">
@@ -318,7 +933,7 @@ export function HomePage() {
 }
 
 export function RoomsPage() { return <><PageHero label="THE ROOMS" title="Stay a little longer." description="Unwind in rooms made for peaceful days and restful nights in the hills." image={balconyRoom} alt="Superior Deluxe room opening toward a mountain-view balcony"/><section className="section-space"><div className="container"><Reveal><div className="section-heading centered"><SectionLabel>YOUR PLACE IN THE HILLS</SectionLabel><h2>Rest comes <em>naturally.</em></h2><p>Choose the space that feels like yours. Suitable for couples, families and groups.</p></div></Reveal><div className="room-detail-list"><Reveal delay={0}><RoomDetail number="01" title="Standard Room" image={standardRoom} alt="Standard Room interior with double bed" description="Settle into the uncomplicated comfort of a homestay room, with a peaceful atmosphere to return to after exploring the hills." features={['Comfortable interiors', 'Peaceful homestay setting']} /></Reveal><Reveal delay={0}><RoomDetail number="02" title="Deluxe AC Room with Terrace" image={deluxeRoom} alt="Deluxe AC Room with seating and double bed" description="A comfortable room with air conditioning and a terrace, giving you a little more space to slow down and enjoy the mountain air." features={['Air conditioning', 'Terrace', 'Comfortable interiors']} reverse /></Reveal><Reveal delay={0}><RoomDetail number="03" title="Superior Deluxe Room with Balcony" image={balconyRoom} alt="Superior Deluxe room with balcony access and mountain-facing windows" description="Wake up at your own pace, then step out onto your balcony and take in the mountain and valley atmosphere." features={['Private balcony', 'Mountain and valley outlook', 'Comfortable interiors']} /></Reveal></div><Reveal><p className="room-disclaimer">Starting from ₹1,206/night* across the property. Room-specific rates and availability are shared on enquiry.</p></Reveal></div></section><ClosingCTA title="A good night's rest starts here."/></>; }
-function RoomDetail({ number, title, image, alt, description, features, reverse = false }: { number: string; title: string; image: string; alt: string; description: string; features: string[]; reverse?: boolean }) { return <article className={`room-detail ${reverse ? 'reverse' : ''}`}><div className="room-detail-image"><img src={image} alt={alt} loading="lazy"/></div><div className="room-detail-copy"><span className="eyebrow">THE ROOMS / {number}</span><h2>{title}</h2><p>{description}</p><ul>{features.map(f => <li key={f}><Check size={16}/>{f}</li>)}</ul><BookingButton>Enquire about this room</BookingButton></div></article>; }
+function RoomDetail({ number, title, image, alt, description, features, reverse = false }: { number: string; title: string; image: string; alt: string; description: string; features: string[]; reverse?: boolean }) { return <article className={`room-detail ${reverse ? 'reverse' : ''}`}><div className="room-detail-image"><img src={image} alt={alt} loading="lazy"/></div><div className="room-detail-copy"><span className="eyebrow">THE ROOMS / {number}</span><h2>{title}</h2><p>{description}</p><ul>{features.map(f => <li key={f}><Check size={16}/>{f}</li>)}</ul><BookingButton message={`Hello Ecstasy Farms Dalhousie, I would like to enquire about room availability and booking for the ${title}.`}>Enquire about this room</BookingButton></div></article>; }
 export function AboutPage() { return <><PageHero label="OUR STORY" title="A place to feel at home." description="A little off the beaten path. A lot closer to what matters." image={propertyGarden} alt="Ecstasy Farms exterior surrounded by greenery"/><section className="section-space"><div className="container intro-grid"><Reveal><div className="intro-image-wrap landscape"><img src={propertyDaylight} alt="Ecstasy Farms homestay under clear Himalayan skies" loading="lazy"/></div></Reveal><Reveal delay={150}><div className="intro-copy"><SectionLabel>WELCOME TO MANOLA</SectionLabel><h2>Beyond the bustle,<br/><em>the hills feel different.</em></h2><p>Ecstasy Farms is a peaceful homestay in Village Manola on the Dalhousie–Chamba Road. Away from the crowded town centre, it's a place to enjoy quiet Himalayan surroundings, nature and mountain views.</p><p>Hosted by Navdeep since 2018, with caretaking support from Sunny/Sunil and family, the stay is rooted in warm local hospitality and the ease of feeling welcome.</p></div></Reveal></div></section><section className="why-section section-space"><div className="container"><Reveal><div className="section-heading centered"><SectionLabel>OUR WAY OF WELCOMING YOU</SectionLabel><h2>Come as you are. <em>Stay as you like.</em></h2></div></Reveal><div className="why-grid"><Reveal delay={0}><div className="why-item"><Trees/><h3>Close to nature</h3><p>Open views, green surroundings and moments to savour the mountain air.</p></div></Reveal><Reveal delay={100}><div className="why-item"><Heart/><h3>Better together</h3><p>A welcoming place for families, couples, friends and groups.</p></div></Reveal><Reveal delay={200}><div className="why-item"><PawPrint/><h3>Pets welcome</h3><p>Your furry companion can be part of the getaway too.</p></div></Reveal><Reveal delay={300}><div className="why-item"><Sun/><h3>Local warmth</h3><p>The familiar kindness of a family-supported Himalayan homestay.</p></div></Reveal></div></div></section><ClosingCTA/></>; }
 export function AmenitiesPage() { return <><PageHero label="THOUGHTFUL COMFORTS" title="Everything you need. Nothing you don't." description="The little conveniences that make it easier to settle in and stay a while." image={gardenEvening} alt="Garden and seating area at Ecstasy Farms"/><section className="section-space"><div className="container"><Reveal><div className="section-heading centered"><SectionLabel>MAKE YOURSELF AT HOME</SectionLabel><h2>Comfort in <em>every detail.</em></h2></div></Reveal><div className="amenity-grid"><Reveal delay={0}><Amenity icon={<Wifi/>} title="Free Wi-Fi" text="Stay connected whenever you need to."/></Reveal><Reveal delay={60}><Amenity icon={<Zap/>} title="Power Backup" text="A little extra peace of mind during your stay."/></Reveal><Reveal delay={120}><Amenity icon={<Car/>} title="Parking" text="Parking available at the property."/></Reveal><Reveal delay={180}><Amenity icon={<UtensilsCrossed/>} title="Home-Cooked Food" text="Fresh meals prepared with care."/></Reveal><Reveal delay={240}><Amenity icon={<Coffee/>} title="Customizable Meals" text="Ask about menu options that suit your preferences."/></Reveal><Reveal delay={300}><Amenity icon={<Flame/>} title="Bonfire on Request" text="Make the most of your evenings outdoors."/></Reveal><Reveal delay={360}><Amenity icon={<Sparkles/>} title="BBQ on Request" text="Gather for a BBQ evening by arrangement."/></Reveal><Reveal delay={420}><Amenity icon={<Compass/>} title="Vehicle Rental Assistance" text="Ask for help planning how to get around."/></Reveal><Reveal delay={480}><Amenity icon={<PawPrint/>} title="Pet Friendly" text="Bring your furry companions along."/></Reveal><Reveal delay={540}><Amenity icon={<Mountain/>} title="Mountain & Valley Views" text="Take in the Himalayan surroundings."/></Reveal></div></div></section><ClosingCTA/></>; }
 function Amenity({ icon, title, text }: { icon: ReactNode; title: string; text: string }) { return <div className="amenity"><span className="amenity-icon">{icon}</span><h3>{title}</h3><p>{text}</p></div>; }
@@ -339,5 +954,5 @@ const galleryPhotos = [
   { src: propertyNight, alt: 'Ecstasy Farms exterior at night', category: 'PROPERTY' },
 ];
 export function GalleryPage() { const [active,setActive] = useState<number | null>(null); useEffect(() => { if(active === null) return; const handle = (e: KeyboardEvent) => { if(e.key === 'Escape') setActive(null); if(e.key === 'ArrowRight') setActive((active + 1) % galleryPhotos.length); if(e.key === 'ArrowLeft') setActive((active - 1 + galleryPhotos.length) % galleryPhotos.length); }; window.addEventListener('keydown',handle); return () => window.removeEventListener('keydown',handle); },[active]); return <><PageHero label="THE GALLERY" title="A glimpse of the good life." description="Little moments from our corner of the Himalayas." image={propertyDaylight} alt="Ecstasy Farms Dalhousie property exterior"/><section className="section-space"><div className="container"><Reveal><div className="section-heading centered"><SectionLabel>TAKE A LOOK AROUND</SectionLabel><h2>See yourself <em>here.</em></h2></div></Reveal><div className="gallery-grid">{galleryPhotos.map((photo,i) => <Reveal key={photo.src} delay={(i % 3) * 80}><Button variant="gallery" className={`gallery-item gallery-item-${i}`} onClick={() => setActive(i)} aria-label={`View photo: ${photo.alt}`}><img src={photo.src} alt={photo.alt} loading="lazy"/><span>{photo.category}<ArrowUpRight size={18}/></span></Button></Reveal>)}</div><p className="gallery-note">The gallery features actual photographs of Ecstasy Farms. Food and pet photographs have not been provided.</p></div></section>{active !== null && <div className="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer" onClick={() => setActive(null)}><Button variant="lightbox" size="icon" className="lightbox-close" onClick={() => setActive(null)} aria-label="Close viewer"><X/></Button><Button variant="lightbox" size="icon" className="lightbox-prev" onClick={(e) => {e.stopPropagation();setActive((active - 1 + galleryPhotos.length) % galleryPhotos.length)}} aria-label="Previous photo"><ChevronLeft/></Button><img src={galleryPhotos[active].src} alt={galleryPhotos[active].alt} onClick={e => e.stopPropagation()}/><Button variant="lightbox" size="icon" className="lightbox-next" onClick={(e) => {e.stopPropagation();setActive((active + 1) % galleryPhotos.length)}} aria-label="Next photo"><ChevronRight/></Button><span className="lightbox-count">{active + 1} / {galleryPhotos.length}</span></div>}<ClosingCTA/></>; }
-export function LocationPage() { return <><PageHero label="FIND YOUR WAY" title="Away from it all. Close to the hills." description="Village Manola, on the Dalhousie–Chamba Road." image={mountainGateway} alt="Entrance to Ecstasy Farms with a view of the Himalayan hills"/><section className="section-space"><div className="container location-grid"><Reveal><div className="location-info"><SectionLabel>WHERE TO FIND US</SectionLabel><h2>The journey is<br/><em>part of the escape.</em></h2><address>Ecstasy Farms Dalhousie<br/>Village Manola, Dalhousie–Chamba Road,<br/>Himachal Pradesh 176306</address><div className="distance-list"><div><span>01</span><p>Approx. 7 km from Banikhet</p></div><div><span>02</span><p>Approx. 15 km from Dalhousie town</p></div></div><Button asChild variant="booking" size="lg"><a href={directions} target="_blank" rel="noopener noreferrer"><MapPin size={17}/> Get Directions <ArrowUpRight size={17}/></a></Button></div></Reveal><Reveal delay={150}><div className="map-wrap"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3362.2819562547197!2d75.98898421127332!3d32.57200377364057!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391c930eff916de3%3A0xe0341988f3a9b80f!2sEcstasy%20Farms%20Dalhousie!5e0!3m2!1sen!2sin!4v1790496452144!5m2!1sen!2sin" width="600" height="450" style={{border:0}} allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin" title="Ecstasy Farms Dalhousie location on Google Maps"/></div></Reveal></div></section><ClosingCTA/></>; }
-export function ContactPage() { const [name,setName] = useState(''); const [phone,setPhone] = useState(''); const [dates,setDates] = useState(''); const [guests,setGuests] = useState(''); const [note,setNote] = useState(''); const submit = (e: React.FormEvent<HTMLFormElement>) => { e.preventDefault(); const message = `Hello Ecstasy Farms Dalhousie, I would like to enquire about room availability and booking.\nName: ${name}\nPhone: ${phone}${dates ? `\nTravel dates: ${dates}` : ''}${guests ? `\nGuests: ${guests}` : ''}${note ? `\nMessage: ${note}` : ''}`; window.open(`https://wa.me/918219967293?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer'); }; return <><PageHero label="LET'S TALK ABOUT YOUR STAY" title="Your escape starts here." description="Have a question or a date in mind? We'd love to hear from you." image={terraceEvening} alt="Warm evening on the terrace at Ecstasy Farms"/><section className="section-space"><div className="container contact-grid"><Reveal><div className="contact-details"><SectionLabel>GET IN TOUCH</SectionLabel><h2>We're just a<br/><em>message away.</em></h2><p>Every good trip starts with a conversation. Reach out to ask about rooms, current rates and availability.</p><div className="contact-method"><span><Phone size={21}/></span><div><small>CALL US</small><a href="tel:+918219967293">+91 82199 67293</a><a href="tel:+919418010753">+91 94180 10753</a></div></div><div className="contact-method"><span><MessageCircle size={21}/></span><div><small>WHATSAPP</small><a href={whatsapp} target="_blank" rel="noopener noreferrer">Start a conversation <ArrowUpRight size={16}/></a></div></div><div className="contact-method"><span><MapPin size={21}/></span><div><small>FIND US</small><p>Village Manola, Dalhousie–Chamba Road,<br/>Himachal Pradesh 176306</p><a href={directions} target="_blank" rel="noopener noreferrer">Get Directions <ArrowUpRight size={16}/></a></div></div></div></Reveal><Reveal delay={150}><div className="enquiry-panel"><span className="eyebrow">BOOKING ENQUIRY</span><h3>Let's plan your stay.</h3><p>Share a few details and your enquiry will open in WhatsApp, ready to send.</p><form onSubmit={submit}><div className="form-row"><label>Your name <input required value={name} onChange={e => setName(e.target.value)} placeholder="Your name"/></label><label>Phone number <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Your phone number"/></label></div><div className="form-row"><label>Travel dates <input value={dates} onChange={e => setDates(e.target.value)} placeholder="Your preferred dates"/></label><label>Number of guests <input value={guests} onChange={e => setGuests(e.target.value)} placeholder="Adults and children"/></label></div><label>Anything else? <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Room preference, pets or any questions" rows={4}/></label><Button type="submit" variant="booking" size="lg">Send enquiry on WhatsApp <ArrowUpRight size={17}/></Button><small>This sends an enquiry, not an instant booking confirmation.</small></form></div></Reveal></div></section><ClosingCTA title="Come for a little while. Leave with a lot."/></>; }
+export function LocationPage() { return <><PageHero label="FIND YOUR WAY" title="Away from it all. Close to the hills." description="Village Manola, on the Dalhousie–Chamba Road." image={mountainGateway} alt="Entrance to Ecstasy Farms with a view of the Himalayan hills"/><section className="section-space"><div className="container location-grid"><Reveal><div className="location-info"><SectionLabel>WHERE TO FIND US</SectionLabel><h2>The journey is<br/><em>part of the escape.</em></h2><address>Ecstasy Farms Dalhousie<br/>Village Manola, Dalhousie–Chamba Road,<br/>Himachal Pradesh 176306</address><div className="distance-list"><div><span>01</span><p>Approx. 7 km from Banikhet</p></div><div><span>02</span><p>Approx. 15 km from Dalhousie town</p></div></div><Button asChild variant="booking" size="lg"><a href={directions} target="_blank" rel="noopener noreferrer"><MapPin size={17}/> Get Directions <ArrowUpRight size={17}/></a></Button></div></Reveal><Reveal delay={150}><div className="map-wrap"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3362.281956254705!2d75.98898421127333!3d32.57200377364096!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391c930eff916de3%3A0xe0341988f3a9b80f!2sEcstasy%20Farms%20Dalhousie!5e0!3m2!1sen!2sin!4v1794895808049!5m2!1sen!2sin" width="600" height="450" style={{border:0}} allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin" title="Ecstasy Farms Dalhousie location on Google Maps"/></div></Reveal></div></section><ClosingCTA/></>; }
+export function ContactPage() { const [name,setName] = useState(''); const [phone,setPhone] = useState(''); const [dates,setDates] = useState(''); const [guests,setGuests] = useState(''); const [note,setNote] = useState(''); const submit = (e: React.FormEvent<HTMLFormElement>) => { e.preventDefault(); const message = `Hello Ecstasy Farms Dalhousie, I would like to enquire about room availability and booking.\nName: ${name}\nPhone: ${phone}${dates ? `\nTravel dates: ${dates}` : ''}${guests ? `\nGuests: ${guests}` : ''}${note ? `\nMessage: ${note}` : ''}`; window.open(`https://wa.me/918219967293?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer'); }; return <><PageHero label="LET'S TALK ABOUT YOUR STAY" title="Your escape starts here." description="Have a question or a date in mind? We'd love to hear from you." image={terraceEvening} alt="Warm evening on the terrace at Ecstasy Farms"/><section className="section-space"><div className="container contact-grid"><Reveal><div className="contact-details"><SectionLabel>GET IN TOUCH</SectionLabel><h2>We're just a<br/><em>message away.</em></h2><p>Every good trip starts with a conversation. Reach out to ask about rooms, current rates and availability.</p><div className="contact-method"><span><Phone size={21}/></span><div><small>CALL US DIRECTLY</small><a href="tel:+918219967293">+91 82199 67293</a></div></div><div className="contact-method"><span><MessageCircle size={21}/></span><div><small>WHATSAPP BOOKING &amp; ENQUIRY</small><a href={whatsapp} target="_blank" rel="noopener noreferrer">+91 82199 67293 <ArrowUpRight size={16}/></a></div></div><div className="contact-method"><span><MapPin size={21}/></span><div><small>FIND US</small><p>Village Manola, Dalhousie–Chamba Road,<br/>Himachal Pradesh 176306</p><a href={directions} target="_blank" rel="noopener noreferrer">Get Directions <ArrowUpRight size={16}/></a></div></div></div></Reveal><Reveal delay={150}><div className="enquiry-panel"><span className="eyebrow">BOOKING ENQUIRY</span><h3>Let's plan your stay.</h3><p>Share a few details and your enquiry will open in WhatsApp, ready to send.</p><form onSubmit={submit}><div className="form-row"><label>Your name <input required value={name} onChange={e => setName(e.target.value)} placeholder="Your name"/></label><label>Phone number <input required type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Your phone number"/></label></div><div className="form-row"><label>Travel dates <input value={dates} onChange={e => setDates(e.target.value)} placeholder="Your preferred dates"/></label><label>Number of guests <input value={guests} onChange={e => setGuests(e.target.value)} placeholder="Adults and children"/></label></div><label>Anything else? <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Room preference, pets or any questions" rows={4}/></label><Button type="submit" variant="booking" size="lg">Send enquiry on WhatsApp <ArrowUpRight size={17}/></Button><small>This sends an enquiry, not an instant booking confirmation.</small></form></div></Reveal></div></section><section className="contact-map-section" style={{ paddingBottom: '100px' }}><div className="container"><Reveal><div className="section-heading centered"><SectionLabel>FIND US ON THE MAP</SectionLabel><h2>Location &amp; <em>Directions</em></h2><p>Village Manola, Dalhousie–Chamba Road, Himachal Pradesh 176306</p></div></Reveal><Reveal delay={120}><div className="map-wrap"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3362.281956254705!2d75.98898421127333!3d32.57200377364096!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391c930eff916de3%3A0xe0341988f3a9b80f!2sEcstasy%20Farms%20Dalhousie!5e0!3m2!1sen!2sin!4v1794895808049!5m2!1sen!2sin" width="600" height="450" style={{border:0}} allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin" title="Ecstasy Farms Dalhousie location on Google Maps"/></div></Reveal></div></section><ClosingCTA title="Come for a little while. Leave with a lot."/></>; }

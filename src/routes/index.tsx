@@ -5,13 +5,13 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: 'Ecstasy Farms Dalhousie | Peaceful Himalayan Homestay Near Banikhet' },
-      { name: "description", content: 'Escape to Ecstasy Farms Dalhousie, a peaceful pet-friendly Himalayan homestay in Village Manola with mountain views, home-cooked meals and rooms from ₹1,206/night.' },
+      { name: "description", content: 'Escape to Ecstasy Farms Dalhousie, a peaceful pet-friendly Himalayan homestay in Village Manola with mountain views, home-cooked meals and rooms from ₹1,206/night. Rated 4.8★ with 231+ verified Google reviews.' },
       { property: "og:title", content: 'Ecstasy Farms Dalhousie | Peaceful Himalayan Homestay Near Banikhet' },
-      { property: "og:description", content: 'Escape to Ecstasy Farms Dalhousie, a peaceful pet-friendly Himalayan homestay in Village Manola with mountain views, home-cooked meals and rooms from ₹1,206/night.' },
+      { property: "og:description", content: 'Escape to Ecstasy Farms Dalhousie, a peaceful pet-friendly Himalayan homestay in Village Manola with mountain views, home-cooked meals and rooms from ₹1,206/night. Rated 4.8★ with 231+ verified Google reviews.' },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://id-preview--931288b8-7d62-4486-8189-0e70c1ec6f73.lovable.app/" }],
+    links: [{ rel: "canonical", href: "https://www.ecstasyfarmsdalhousie.com/" }],
   }),
   component: HomePage,
 });
